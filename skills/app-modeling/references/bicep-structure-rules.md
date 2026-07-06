@@ -40,7 +40,7 @@ resource myContainer 'Radius.Compute/containers@2025-08-01-preview' = {
       mysqldb: {                     // object map, NOT array
         source: database.id
       }
-      demoContainerImage: {
+      containerImage: {
         source: myImage.id
       }
     }
@@ -65,13 +65,13 @@ Rules:
 param image string
 
 resource myImage 'Radius.Compute/containerImages@2025-08-01-preview' = {
-  name: 'demo-image'
+  name: 'myapp-image'
   properties: {
     environment: environment
     application: app.id
     image: image
     build: {
-      context: '/app/demo'
+      context: '.'
     }
   }
 }
@@ -83,7 +83,7 @@ Rules:
 - Container must reference image as `myImage.properties.image`
 - Container must have a connection to `myImage.id` for dependency ordering
 - `image` must be lowercase
-- `build.context` is the filesystem path where the repo source is volume-mounted on the Kubernetes node
+- `build.context` is the directory containing the Dockerfile, relative to the repository root (`'.'` if the Dockerfile is at the repo root)
 
 ## Radius.Data/* structure
 
@@ -118,7 +118,7 @@ resource dbSecret 'Radius.Security/secrets@2025-08-01-preview' = {
     application: app.id
     data: {
       USERNAME: {
-        value: 'todo_list_app_user'
+        value: 'myapp_user'
       }
       PASSWORD: {
         value: password
@@ -134,6 +134,7 @@ Rules:
 - NEVER hardcode passwords — use `@secure() param`
 - `data` is an object map, NOT an array
 - Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`)
+- `USERNAME` is derived from the source DB config (`MYSQL_USER`, `POSTGRES_USER`, connection string); fallback `<shortName>_user`
 
 ## Radius.Compute/routes structure
 

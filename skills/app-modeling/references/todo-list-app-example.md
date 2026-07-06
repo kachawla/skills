@@ -26,11 +26,11 @@
 1. **`Applications.Core/applications@2023-10-01-preview`** — the application resource is a built-in Radius type, NOT from `resource-types-contrib`. It uses the older API version.
 2. **`containerImages` resource** — the app has a Dockerfile but no published image. The `containerImages` resource builds and pushes it.
 3. **`param image string`** — image reference is parameterized, not hardcoded.
-4. **`build.context: '/app/demo'`** — the filesystem path where the repo source is volume-mounted on the Kubernetes node.
+4. **`build.context`** — the directory containing the Dockerfile, relative to the repo root (`'.'` when the Dockerfile is at the repo root).
 5. **`Radius.Security/secrets`** — database credentials (username + password) are stored in a secret resource. The database references it via `secretName: dbSecret.name`.
 6. **`@secure() param password string`** — password is passed at deploy time, never hardcoded.
 7. **`database: 'todos'`** — matches the `MYSQL_DATABASE: todos` from compose.yaml.
 8. **`version: '8.0'`** — matches `mysql:8.0` from compose.yaml.
-9. **Two connections on container** — `mysqldb` for database auto-injection; `demoContainerImage` for build ordering.
+9. **Two connections on container** — `mysqldb` for database auto-injection; `containerImage` for build ordering.
 10. **No routes** — not added unless external ingress is explicitly required.
 11. **App code change required** — `Radius.Compute/containers` injects a JSON blob via `CONNECTION_MYSQLDB_PROPERTIES`, not individual vars. The app's `src/persistence/index.js` must be updated to parse this JSON. See [connection-conventions.md](connection-conventions.md) for helper code.

@@ -6,6 +6,7 @@
 - For secrets passed at deploy time, use `@secure() param` and pass via `rad deploy -p`.
 - ALWAYS create a `Radius.Security/secrets` resource for database credentials (username, password).
 - Reference the secret from the database resource via `secretName: mySecret.name`.
+- Derive the database USERNAME from the source config (`MYSQL_USER`, `POSTGRES_USER`, connection string); if absent, use `<shortName>_user`. Never invent a username unrelated to the source.
 - Use `Radius.Security/secrets` for any app-specific secrets (API keys, TLS certs) as well.
 
 ## Database credentials pattern
@@ -21,7 +22,7 @@ resource dbSecret 'Radius.Security/secrets@2025-08-01-preview' = {
     application: app.id
     data: {
       USERNAME: {
-        value: 'todo_list_app_user'
+        value: 'todo_user'
       }
       PASSWORD: {
         value: password

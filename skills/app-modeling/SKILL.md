@@ -61,7 +61,7 @@ These rules eliminate ambiguity. Apply them exactly.
 |---|---|
 | Application | `<shortName>App` where `<shortName>` is the app name without hyphens, camelCase (e.g., `todo-list-app` → `todoApp`) |
 | Container | `<shortName>Container` (e.g., `todoContainer`) |
-| Container image | `demoImage` (always) |
+| Container image | `<shortName>Image` (e.g., `todoImage`) |
 | Database | `database` (always) |
 | Database secret | `dbSecret` (always) |
 | Route | `<shortName>Route` (e.g., `todoRoute`) |
@@ -72,7 +72,7 @@ These rules eliminate ambiguity. Apply them exactly.
 |---|---|
 | Application | Repository name in kebab-case (e.g., `'todo-list-app'`) |
 | Container | `'<app-name>-frontend'` for single-container apps (e.g., `'todo-list-frontend'`) |
-| Container image | `'demo-image'` (always) |
+| Container image | `'<app-name>-image'` (e.g., `'todo-list-app-image'`) |
 | Database | Short name of the database engine: `'mysql'`, `'postgres'`, `'neo4j'` |
 | Database secret | `'dbsecret'` (always) |
 
@@ -81,16 +81,16 @@ These rules eliminate ambiguity. Apply them exactly.
 | Connection | Key |
 |---|---|
 | Database | `mysqldb`, `postgresdb`, `neo4jdb` (engine name + `db`) |
-| Container image | `demoContainerImage` (always) |
+| Container image | `containerImage` (always) |
 
 ### Other fixed values
 
 | Field | Value |
 |---|---|
-| Database secret USERNAME | `'todo_list_app_user'` (always) |
+| Database secret USERNAME | Derived from source DB config (e.g., `MYSQL_USER`, `POSTGRES_USER`, connection string); fallback `<shortName>_user` (e.g., `todo_user`) |
 | Container key in `containers` map | Short name derived from app (e.g., `todo` for todo-list-app) |
 | Port key in `ports` map | `web` (always, for HTTP) |
-| `build.context` for containerImages | `'/app/demo'` (always) |
+| `build.context` for containerImages | Directory containing the Dockerfile, relative to repo root (`'.'` if at root) |
 
 ### Extension order
 
@@ -156,7 +156,7 @@ Declare resources in this order (do NOT output this as code — it is only for y
 Rules:
 - Always start with `extension radius` then namespace-level extensions in the fixed order, then params.
 - Always declare exactly ONE `Applications.Core/applications@2023-10-01-preview` resource.
-- If the app has a Dockerfile but no published image, add a `Radius.Compute/containerImages` resource. Use a `param image string` for the image reference. The container must reference the image via `demoImage.properties.image` and have a connection to `demoImage.id`.
+- If the app has a Dockerfile but no published image, add a `Radius.Compute/containerImages` resource. Use a `param image string` for the image reference. The container must reference the image via `<shortName>Image.properties.image` and have a connection to `<shortName>Image.id`.
 - For database credentials, create a `Radius.Security/secrets` resource and reference it via `secretName` on the database resource.
 - Use `@secure() param` for passwords — NEVER hardcode them.
 - For each container service, emit exactly one `Radius.Compute/containers` resource.
@@ -175,7 +175,7 @@ Rules:
 
 Read [secrets-handling.md](references/secrets-handling.md).
 
-Database resources reference secrets via `secretName: dbSecret.name`. Username is always `'todo_list_app_user'`. Use `@secure() param` for the password.
+Database resources reference secrets via `secretName: dbSecret.name`. The username is derived from the source database config (e.g., `MYSQL_USER`/`POSTGRES_USER` or a connection string); if none is found, use `<shortName>_user`. Use `@secure() param` for the password.
 
 ## Bicep Structure Rules
 
@@ -194,12 +194,12 @@ Before outputting, verify ALL:
 - [ ] `param image string` declared if building container images
 - [ ] Exactly one `Applications.Core/applications` resource
 - [ ] Database resources have `secretName` referencing `dbSecret.name`
-- [ ] Secret USERNAME is `'todo_list_app_user'`
+- [ ] Secret USERNAME is derived from source DB config (fallback `<shortName>_user`)
 - [ ] `connections` is a top-level property under `properties`, NOT inside `containers`
 - [ ] `connections` is an object map, NOT an array
 - [ ] Container images use `param image string`, not hardcoded
 - [ ] Ports use `containerPort`, NOT `port`
-- [ ] `build.context` is `'/app/demo'`
+- [ ] `build.context` is the Dockerfile's directory relative to repo root (`'.'` if at root)
 - [ ] No comments or explanations in the generated Bicep
 - [ ] No source analysis, step headings, or reasoning shown in chat
 

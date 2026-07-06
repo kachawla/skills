@@ -103,8 +103,8 @@ connections: {
   mysqldb: {
     source: database.id
   }
-  demoContainerImage: {
-    source: demoImage.id
+  containerImage: {
+    source: myImage.id
   }
 }
 ```

@@ -27,8 +27,8 @@ Don't create the pull request automatically — wait for the user to confirm. If
 
 Before writing the Bicep:
 
-1. Analyze the source (package manifest, Dockerfile/compose, entry point, persistence layer, env vars).
-2. Classify into one architecture pattern — see [architecture-patterns.md](references/architecture-patterns.md).
+1. Analyze the source (package manifest, Dockerfile/compose, entry point, persistence layer, env vars) and detect the app's components — the compute runtime and each backing service. Map each to a Radius type using [component-catalog.md](references/component-catalog.md).
+2. Note the primary architecture pattern for context — see [architecture-patterns.md](references/architecture-patterns.md). Composition is driven by the detected components, not the pattern label, and an app may combine patterns. If a detected component has no Radius type yet, report the gap rather than substituting an unrelated type.
 3. Resolve the resource types the app needs from `radius-project/resource-types-contrib`. Derive each schema path from the type name (see [Resource Type Resolution](#resource-type-resolution)) and read only those files. If a needed type's schema isn't at the derived path, search the repo for `<typeName>.yaml`; if it still can't be resolved, stop and report the missing type rather than guessing. Types the app doesn't use don't need to resolve.
 4. Apply the naming, structure, and secrets rules below (and in [bicep-structure-rules.md](references/bicep-structure-rules.md), [naming-conventions.md](references/naming-conventions.md), [secrets-handling.md](references/secrets-handling.md)).
 5. Generate the Bicep and check it against the [validation checklist](#validation-checklist).

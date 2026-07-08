@@ -28,7 +28,7 @@ Match by **wire protocol, not exact library**: MariaDB clients map to MySQL, Val
 | LLM inference | `openai`, `@anthropic-ai/sdk`, `@google/generative-ai` / `openai`, `anthropic` / `Azure.AI.OpenAI` | `Radius.AI/models` | Web App, Microservices, AI/ML |
 | Full-text / AI search | `@elastic/elasticsearch`, `@opensearch-project/opensearch` / `elasticsearch`, `opensearch-py` / `Azure.Search.Documents` | `Radius.AI/search` | Web App, Microservices, Data Pipeline, AI/ML |
 | Object storage (S3 / Blob / GCS) | `@aws-sdk/client-s3`, `@azure/storage-blob` / `boto3`, `azure-storage-blob` / `AWSSDK.S3`, `Azure.Storage.Blobs` / `aws-sdk-s3` | `Radius.Storage/objectStorage` | Web App, Data Pipeline, AI/ML |
-| App secrets (API keys, tokens); neo4j DB credentials | env-injected secrets; API keys in config | `Radius.Security/secrets` | supporting |
+| App secrets (API keys, tokens); DB creds when the schema uses `secretName` | env-injected secrets; API keys in config | `Radius.Security/secrets` | supporting |
 
 ## Recognized but no Radius type yet
 

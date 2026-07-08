@@ -45,7 +45,7 @@ These rules eliminate ambiguity. Apply them exactly.
 | Container | `<serviceName>Container` — service short name camelCase; single-container apps use `<shortName>Container` (e.g., `todoContainer`) |
 | Container image | `<serviceName>Image` (e.g., `todoImage`) |
 | Data store (database/cache/queue) | `<engine>` + role suffix, camelCase: `mysqlDb`, `postgresDb`, `neo4jDb`, `redisCache`. Multiple of the same engine: prefix with the source store name (e.g., `ordersPostgresDb`) |
-| Data store secret | `<engine>Secret` (e.g., `neo4jSecret`) — only for types whose schema takes `secretName` (e.g. `neo4jDatabases`); app secrets use `appSecrets` |
+| Data store secret | `<engine>Secret` (e.g., `neo4jSecret`) — only when the type's schema defines `secretName`; app secrets use `appSecrets` |
 | Route | `<serviceName>Route` (e.g., `todoRoute`) |
 
 ### Resource `name` properties (string values in Bicep)
@@ -69,7 +69,7 @@ These rules eliminate ambiguity. Apply them exactly.
 
 | Field | Value |
 |---|---|
-| Data store admin username | The administrator username you author for the provisioned database. Set `username` directly on the resource (postgres/mysql/sqlserver) or as `USERNAME` in the neo4j secret. Use a simple admin name (e.g., `myadmin`); it is NOT derived from the source, and an admin name is expected |
+| Data store admin username | The administrator username you author for the provisioned database. Set it wherever the schema puts credentials — `username` on the resource, or `USERNAME` in the secret when the schema uses `secretName`. Use a simple admin name (e.g., `myadmin`); it is NOT derived from the source |
 | Data store `database` name | Derived from source (e.g., `MYSQL_DATABASE`/`POSTGRES_DB`, or the database segment of a connection string) |
 | Data store `version` | Derived from source (e.g., the image tag `mysql:8.0` → `'8.0'`) |
 | Container key in `containers` map | Service short name camelCase (single-container: derived from app, e.g., `todo`) |
@@ -138,7 +138,7 @@ Declare resources in this order (do NOT output this as code — it is only for y
 Rules:
 - One `Radius.Compute/containers` per container service; one `Radius.Data/*` per backing data store (engine/instance-derived symbolic name).
 - Building from a Dockerfile: add a `Radius.Compute/containerImages` resource, pass the reference via `param image string`, and have the container use `<serviceName>Image.properties.image` with a connection to `<serviceName>Image.id`.
-- Database credentials are schema-specific: postgres/mysql/sqlserver take `username` + `password` directly on the resource; neo4j takes `secretName` referencing a `Radius.Security/secrets`; redis/mongo/kafka/rabbitmq/objectStorage take no credentials. Always use a `@secure() param` for the password.
+- Database credentials follow the type's schema: if it defines `username`/`password`, set them on the resource; if it defines `secretName`, create a `Radius.Security/secrets` and reference it; if it defines neither, the type takes no credentials. Always use a `@secure() param` for the password.
 - Add `Radius.Compute/routes` only for external ingress.
 
 ## Connections
@@ -151,7 +151,7 @@ Rules:
 
 ## Secrets
 
-See [secrets-handling.md](references/secrets-handling.md). How credentials are supplied depends on the type's schema: `username` + `password` directly on the resource (postgres, mysql, sqlserver); a `Radius.Security/secrets` referenced via `secretName` (neo4j); or none, with the recipe generating the connection (redis, mongo, kafka, rabbitmq, objectStorage). The password is always a `@secure() param`, and the username is the database administrator you author (e.g. `myadmin`). Use `Radius.Security/secrets` for genuine app secrets (API keys) too.
+See [secrets-handling.md](references/secrets-handling.md). Read the type's schema to determine the credential shape: `username` + `password` directly on the resource; a `Radius.Security/secrets` referenced via `secretName`; or none (the recipe generates the connection). Do not assume by engine — follow whatever the schema defines. The password is always a `@secure() param`, and the username is the database administrator you author (e.g. `myadmin`). Use `Radius.Security/secrets` for app secrets (API keys) too.
 
 ## Bicep Structure Rules
 
@@ -165,7 +165,7 @@ Before returning the Bicep, verify:
 - [ ] `param environment string` is declared; `@secure() param password` and `param image string` are declared when needed.
 - [ ] `connections` is a top-level object map under `properties` (not inside `containers`, not an array).
 - [ ] Ports use `containerPort`; `build.context` is the Dockerfile's directory (`'.'` if at repo root).
-- [ ] Credentials match the type's schema: `username`+`password` on the resource (postgres/mysql/sqlserver), `secretName`+secret (neo4j), or none (redis/mongo/kafka/rabbitmq/objectStorage). Password via `@secure() param`; `database`/`topic`/`queue`/etc. derived from source.
+- [ ] Credentials match the type's schema: `username`+`password` on the resource, or `secretName`+secret, or none — whichever the schema defines. Password via `@secure() param`; `database`/`topic`/`queue`/etc. derived from source.
 - [ ] No hardcoded passwords, no readOnly properties set, no comments in the Bicep, and no `bicepconfig.json`.
 
 ## Example

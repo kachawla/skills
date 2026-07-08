@@ -10,7 +10,7 @@ If a detected component has no Radius type yet, note the gap and continue with t
 Request/response web applications (monolith or MVC).
 - **Signals**: HTTP framework (Express, Django, Rails, Flask, Spring MVC, ASP.NET); server-rendered or REST; usually one primary database.
 - **Typical components**: container + a relational or document database + optional cache + external ingress.
-- **Radius types**: `Radius.Compute/containers` (+ `Radius.Compute/containerImages` when building from a Dockerfile) + `Radius.Data/*` + `Radius.Compute/routes`. Credentials are authored on the data resource per its schema; a `Radius.Security/secrets` is only needed for neo4j or app API keys.
+- **Radius types**: `Radius.Compute/containers` (+ `Radius.Compute/containerImages` when building from a Dockerfile) + `Radius.Data/*` + `Radius.Compute/routes`. Credentials follow the data type's schema; a `Radius.Security/secrets` is only needed when a type's schema defines `secretName`, or for app API keys.
 
 ### Microservices
 Distributed services communicating via APIs or messages.

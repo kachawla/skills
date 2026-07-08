@@ -101,10 +101,10 @@ resource mysqlDb 'Radius.Data/mySqlDatabases@2025-08-01-preview' = {
 ```
 
 Rules:
-- Credentials are schema-specific:
-  - postgres/mysql/sqlserver: `username` + `password` directly on the resource (`password` from a `@secure() param`, marked `x-radius-sensitive` by the schema)
-  - neo4j: `secretName` referencing a `Radius.Security/secrets` (see below)
-  - redis/mongo/kafka/rabbitmq/objectStorage: no credentials — the recipe generates the connection
+- Credentials follow whatever the type's schema defines (do not assume by engine):
+  - schema has `username` + `password`: set them on the resource (`password` from a `@secure() param`, marked `x-radius-sensitive`)
+  - schema has `secretName`: create a `Radius.Security/secrets` and reference it (see below)
+  - schema has neither: no credentials — the recipe generates the connection
 - Symbolic name is engine/instance-derived (`mysqlDb`), NOT fixed — so multiple data stores never collide
 - Developer-facing props (`database`, `version`, `size`, `topic`, `queue`, `container`) are derived from source — do NOT hardcode; only set properties the schema defines
 - Do NOT set readOnly properties (`host`, `port`, `connectionString`) — these are recipe outputs
@@ -133,7 +133,7 @@ resource neo4jSecret 'Radius.Security/secrets@2025-08-01-preview' = {
 ```
 
 Rules:
-- Used for neo4j database credentials (referenced via `secretName`) and for app secrets (API keys, tokens) — NOT for postgres/mysql/sqlserver, which take `username`/`password` directly on the resource
+- Used when a data type's schema defines `secretName` (referenced from the data resource) and for app secrets (API keys, tokens) — not when the schema takes `username`/`password` directly
 - NEVER hardcode passwords — use `@secure() param`
 - `data` is an object map, NOT an array
 - Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`, `API_KEY`)

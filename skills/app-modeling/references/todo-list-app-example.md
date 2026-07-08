@@ -19,7 +19,6 @@
 | Dockerfile (build image) | `Radius.Compute/containerImages` | `2025-08-01-preview` |
 | Node.js container | `Radius.Compute/containers` | `2025-08-01-preview` |
 | MySQL 8.0 | `Radius.Data/mySqlDatabases` | `2025-08-01-preview` |
-| DB credentials | `Radius.Security/secrets` | `2025-08-01-preview` |
 
 ## Key decisions explained
 
@@ -27,7 +26,7 @@
 2. **`containerImages` resource** — the app has a Dockerfile but no published image. The `containerImages` resource builds and pushes it.
 3. **`param image string`** — image reference is parameterized, not hardcoded.
 4. **`build.context`** — the directory containing the Dockerfile, relative to the repo root (`'.'` when the Dockerfile is at the repo root).
-5. **`Radius.Security/secrets`** — database credentials (username + password) are stored in a secret resource named `mysql-secret` (symbolic `mysqlSecret`). The database references it via `secretName: mysqlSecret.name`.
+5. **Database credentials** — `mySqlDatabases` takes `username` (an admin you author, e.g. `myadmin`) and `password` directly on the resource; no separate secret. The `password` comes from a `@secure() param`.
 6. **`@secure() param password string`** — password is passed at deploy time, never hardcoded.
 7. **`database: 'todos'`** — derived from the `MYSQL_DATABASE: todos` in compose.yaml, not hardcoded.
 8. **`version: '8.0'`** — derived from the `mysql:8.0` image tag in compose.yaml, not hardcoded.

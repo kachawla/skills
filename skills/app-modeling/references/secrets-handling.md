@@ -1,6 +1,6 @@
 # Secrets and Credentials
 
-How database credentials are supplied is **type-specific** — read the type's schema. There are three models.
+How database credentials are supplied is **type-specific** — read the type's schema. There are three shapes, keyed on which credential properties the schema defines.
 
 ## Rules
 
@@ -11,7 +11,7 @@ How database credentials are supplied is **type-specific** — read the type's s
 
 ## Shape 1 — schema defines `username` + `password`
 
-Set them directly on the data resource; `password` is `x-radius-sensitive`. (Today: postgres, mysql, sqlserver.)
+Set them directly on the data resource; `password` is `x-radius-sensitive`. (Today: postgres, mysql, sqlserver, neo4j.)
 
 ```bicep
 @secure()
@@ -31,33 +31,7 @@ resource postgresql 'Radius.Data/postgreSqlDatabases@2025-08-01-preview' = {
 
 ## Shape 2 — schema defines `secretName`
 
-Create a `Radius.Security/secrets` holding `USERNAME` and `PASSWORD`, and reference it via `secretName`. (Today: neo4j — but it is migrating to Shape 1, so always follow the current schema rather than assuming.)
-
-```bicep
-@secure()
-param password string
-
-resource neo4jSecret 'Radius.Security/secrets@2025-08-01-preview' = {
-  name: 'neo4j-secret'
-  properties: {
-    environment: environment
-    application: app.id
-    data: {
-      USERNAME: { value: 'neo4j' }
-      PASSWORD: { value: password }
-    }
-  }
-}
-
-resource neo4jDb 'Radius.Data/neo4jDatabases@2025-08-01-preview' = {
-  name: 'neo4j'
-  properties: {
-    environment: environment
-    application: app.id
-    secretName: neo4jSecret.name
-  }
-}
-```
+Create a `Radius.Security/secrets` holding `USERNAME` and `PASSWORD` (see the app-secrets example below for the resource shape) and reference it from the data resource via `secretName`. No type uses this shape today; it's kept so the schema-driven rule stays complete if a schema declares `secretName`.
 
 ## Shape 3 — schema defines no credential properties
 

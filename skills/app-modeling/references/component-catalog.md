@@ -27,7 +27,8 @@ Match by **wire protocol, not exact library**: MariaDB clients map to MySQL, Val
 | RabbitMQ | `amqplib` / `pika`, `aio-pika` / `RabbitMQ.Client` / `bunny` | `Radius.Messaging/rabbitMQ` | Microservices, Enterprise |
 | LLM inference | `openai`, `@anthropic-ai/sdk`, `@google/generative-ai` / `openai`, `anthropic` / `Azure.AI.OpenAI` | `Radius.AI/models` | Web App, Microservices, AI/ML |
 | Full-text / AI search | `@elastic/elasticsearch`, `@opensearch-project/opensearch` / `elasticsearch`, `opensearch-py` / `Azure.Search.Documents` | `Radius.AI/search` | Web App, Microservices, Data Pipeline, AI/ML |
-| App secrets (API keys, DB creds) | env-injected secrets; API keys in config | `Radius.Security/secrets` | supporting |
+| Object storage (S3 / Blob / GCS) | `@aws-sdk/client-s3`, `@azure/storage-blob` / `boto3`, `azure-storage-blob` / `AWSSDK.S3`, `Azure.Storage.Blobs` / `aws-sdk-s3` | `Radius.Storage/objectStorage` | Web App, Data Pipeline, AI/ML |
+| App secrets (API keys, tokens); DB creds when the schema uses `secretName` | env-injected secrets; API keys in config | `Radius.Security/secrets` | supporting |
 
 ## Recognized but no Radius type yet
 
@@ -35,7 +36,6 @@ When present, include these in your summary and **report the gap** — do NOT su
 
 | Component | Detection cues | Note |
 |---|---|---|
-| Object storage (S3 / Blob / GCS) | `@aws-sdk/client-s3`, `boto3`, `@azure/storage-blob`, `google-cloud-storage` | No type yet |
 | Serverless functions | AWS Lambda / Azure Functions / GCP Functions handlers | No type yet |
 | Generic message queue | `bullmq`, `celery`, `sidekiq`, SQS / Service Bus SDKs | Use Kafka/RabbitMQ if that is the actual broker; otherwise no type |
 | MQTT / Mosquitto | `mqtt`, `paho-mqtt` | No type yet (blocks full IoT) |

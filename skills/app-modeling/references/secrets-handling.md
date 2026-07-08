@@ -1,53 +1,45 @@
-# Secrets Handling
+# Secrets and Credentials
+
+How database credentials are supplied is **type-specific** — read the type's schema. There are three shapes, keyed on which credential properties the schema defines.
 
 ## Rules
 
-- NEVER hardcode passwords, tokens, or keys in `app.bicep`.
-- For secrets passed at deploy time, use `@secure() param` and pass via `rad deploy -p`.
-- ALWAYS create a `Radius.Security/secrets` resource for database credentials (username, password).
-- Create one secret per data store that needs credentials; symbolic `<engine>Secret`, name `'<engine>-secret'` (e.g., `mysqlSecret` / `'mysql-secret'`).
-- Reference the secret from the database resource via `secretName: mySecret.name`.
-- Derive the database USERNAME from the source config (`MYSQL_USER`, `POSTGRES_USER`, connection string); if absent, use `<shortName>_user`. Never invent a username unrelated to the source.
-- NEVER use a superuser/admin account (`root`, `admin`, `sa`, `postgres`, `mysql`) as the USERNAME. The secret provisions a dedicated, least-privilege app user, so if the source connects as a superuser, fall back to `<shortName>_user`.
-- Use `Radius.Security/secrets` for any app-specific secrets (API keys, TLS certs) as well.
+- NEVER hardcode passwords, tokens, or keys in `app.bicep`. Use a `@secure() param` and pass it at deploy time (`rad deploy -p password=...`).
+- **Determine the credential shape from the type's schema — do not assume by engine.** The three shapes below key off which properties the schema defines.
+- The username is the **administrator** account you author for the database Radius provisions. Use a simple admin name (e.g. `myadmin`); it is not derived from the source.
+- `Radius.Security/secrets` is for (a) a data type whose schema requires `secretName` and (b) genuine app secrets (API keys, tokens).
 
-## Database credentials pattern
+## Shape 1 — schema defines `username` + `password`
+
+Set them directly on the data resource; `password` is `x-radius-sensitive`. (Today: postgres, mysql, sqlserver, neo4j.)
 
 ```bicep
 @secure()
 param password string
 
-resource mysqlSecret 'Radius.Security/secrets@2025-08-01-preview' = {
-  name: 'mysql-secret'
+resource postgresql 'Radius.Data/postgreSqlDatabases@2025-08-01-preview' = {
+  name: 'postgresql'
   properties: {
     environment: environment
     application: app.id
-    data: {
-      USERNAME: {
-        value: 'todo_user'
-      }
-      PASSWORD: {
-        value: password
-      }
-    }
-  }
-}
-
-resource mysqlDb 'Radius.Data/mySqlDatabases@2025-08-01-preview' = {
-  name: 'mysql'
-  properties: {
-    environment: environment
-    application: app.id
-    database: 'todos'      // derived from source (e.g. MYSQL_DATABASE)
-    version: '8.0'         // derived from source (e.g. image tag mysql:8.0)
-    secretName: mysqlSecret.name
+    database: 'appdb'      // derived from source
+    username: 'myadmin'
+    password: password
   }
 }
 ```
 
-Deploy: `rad deploy app.bicep -p password=$DB_PASSWORD -p image=ghcr.io/myorg/myapp:latest`
+## Shape 2 — schema defines `secretName`
 
-## App-specific secrets pattern
+Create a `Radius.Security/secrets` holding `USERNAME` and `PASSWORD` (see the app-secrets example below for the resource shape) and reference it from the data resource via `secretName`. No type uses this shape today; it's kept so the schema-driven rule stays complete if a schema declares `secretName`.
+
+## Shape 3 — schema defines no credential properties
+
+The type takes no credentials in the app definition; the recipe provisions the resource and generates the connection. A container `connection` to the resource injects `CONNECTION_*` env vars (host / port / connectionString). See [connection-conventions.md](connection-conventions.md). (Today: redis, mongo, kafka, rabbitmq, objectStorage.)
+
+## App-specific secrets
+
+Use `Radius.Security/secrets` for API keys and tokens the app needs, referenced by the container via a connection or env.
 
 ```bicep
 @secure()
@@ -59,9 +51,7 @@ resource appSecrets 'Radius.Security/secrets@2025-08-01-preview' = {
     environment: environment
     application: app.id
     data: {
-      API_KEY: {
-        value: apiKey
-      }
+      API_KEY: { value: apiKey }
     }
   }
 }
@@ -69,8 +59,9 @@ resource appSecrets 'Radius.Security/secrets@2025-08-01-preview' = {
 
 ## Common mistakes to avoid
 
-- Do NOT write `password: 'mysecretpassword'` — always use `@secure() param`
-- Do NOT skip creating `Radius.Security/secrets` for database credentials
-- Do NOT use a superuser/admin account (`root`, `admin`, `sa`, `postgres`, `mysql`) as the USERNAME — fall back to `<shortName>_user`
-- Do NOT forget to add `secretName: <engine>Secret.name` (e.g., `mysqlSecret.name`) on the database resource
-- Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`, `API_KEY`)
+- Do NOT write `password: 'mysecretpassword'` — always use a `@secure() param`.
+- Do NOT assume a credential model by engine — read the schema and follow the properties it defines.
+- Do NOT create a `Radius.Security/secrets` when the schema defines `username`/`password` — set them directly on the resource.
+- Do NOT add a `secretName` property unless the schema defines one.
+- Do NOT add credentials when the schema defines none.
+- Keys in a secret's `data` are UPPERCASE (`USERNAME`, `PASSWORD`, `API_KEY`).

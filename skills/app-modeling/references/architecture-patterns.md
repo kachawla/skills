@@ -9,8 +9,8 @@ If a detected component has no Radius type yet, note the gap and continue with t
 ### Web App
 Request/response web applications (monolith or MVC).
 - **Signals**: HTTP framework (Express, Django, Rails, Flask, Spring MVC, ASP.NET); server-rendered or REST; usually one primary database.
-- **Typical components**: container + a relational or document database + optional cache + secrets + external ingress.
-- **Radius types**: `Radius.Compute/containers` (+ `Radius.Compute/containerImages` when building from a Dockerfile) + `Radius.Data/*` + `Radius.Security/secrets` + `Radius.Compute/routes`.
+- **Typical components**: container + a relational or document database + optional cache + external ingress.
+- **Radius types**: `Radius.Compute/containers` (+ `Radius.Compute/containerImages` when building from a Dockerfile) + `Radius.Data/*` + `Radius.Compute/routes`. Credentials follow the data type's schema; a `Radius.Security/secrets` is only needed when a type's schema defines `secretName`, or for app API keys.
 
 ### Microservices
 Distributed services communicating via APIs or messages.
@@ -22,8 +22,8 @@ Distributed services communicating via APIs or messages.
 Batch or streaming ETL, analytics, and data processing.
 - **Signals**: no long-lived HTTP server; runs to completion or on a schedule; ETL/stream libraries; object-storage or warehouse clients.
 - **Typical components**: batch container + object storage + an event stream.
-- **Radius types**: `Radius.Compute/containers` (with `restartPolicy: 'OnFailure'`/`'Never'` for batch) + `Radius.Messaging/kafka` when used.
-- **Gap**: object storage and distributed processing (Spark) have no Radius type yet — recognize and report the gap.
+- **Radius types**: `Radius.Compute/containers` (with `restartPolicy: 'OnFailure'`/`'Never'` for batch) + `Radius.Storage/objectStorage` + `Radius.Messaging/kafka` when used.
+- **Gap**: distributed processing (Spark) has no Radius type yet — recognize and report the gap.
 
 ### Real-time
 Low-latency event processing, WebSockets, live updates.
@@ -34,8 +34,8 @@ Low-latency event processing, WebSockets, live updates.
 ### Enterprise
 Line-of-business applications with compliance and integration needs.
 - **Signals**: .NET or Java stack; SQL Server (or Oracle); enterprise message brokers.
-- **Typical components**: container + SQL Server + a message broker + secrets.
-- **Radius types**: `Radius.Compute/containers` + `Radius.Data/sqlServerDatabases` + `Radius.Messaging/rabbitMQ` + `Radius.Security/secrets`.
+- **Typical components**: container + SQL Server + a message broker.
+- **Radius types**: `Radius.Compute/containers` + `Radius.Data/sqlServerDatabases` (`username`/`password` on the resource) + `Radius.Messaging/rabbitMQ`.
 - **Gap**: Oracle and Vault have no Radius type yet — report the gap.
 
 ### AI/ML

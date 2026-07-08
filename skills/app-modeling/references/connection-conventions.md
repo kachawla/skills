@@ -56,9 +56,6 @@ connections: {
   mysqldb: {
     source: mysqlDb.id
   }
-  containerImage: {
-    source: myImage.id
-  }
 }
 ```
 

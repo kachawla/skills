@@ -63,7 +63,6 @@ These rules eliminate ambiguity. Apply them exactly.
 | Connection | Key |
 |---|---|
 | Data store | Engine + role, lowercase: `mysqldb`, `postgresdb`, `neo4jdb`, `rediscache`. Multiple of the same engine: prefix with the source store name |
-| Container image | `containerImage` (one built image per container; the key is scoped to that container's `connections` map) |
 
 ### Other fixed values
 
@@ -74,7 +73,7 @@ These rules eliminate ambiguity. Apply them exactly.
 | Data store `version` | Derived from source (e.g., the image tag `mysql:8.0` → `'8.0'`) |
 | Container key in `containers` map | Service short name camelCase (single-container: derived from app, e.g., `todo`) |
 | Port key in `ports` map | `web` for the primary HTTP port; additional ports derive from protocol/use (`http`, `grpc`) |
-| `build.context` for containerImages | Directory containing the Dockerfile, relative to repo root (`'.'` if at root) |
+| `build.source` for containerImages | Repo git URL: `git::https://github.com/<org>/<repo>.git//<subdir>?ref=<sha-or-tag>` (`//<subdir>` only when the Dockerfile isn't at the repo root) |
 
 ## Resource Type Resolution
 
@@ -127,7 +126,7 @@ Declare exactly one extension, `extension radius`. It provides every Radius type
 Declare resources in this order (do NOT output this as code — it is only for your reference):
 
 1. Extension: `extension radius` (single, covers all Radius types)
-2. Params: `environment`, then `@secure() password` if needed, then `@description(...) image` if needed
+2. Params: `environment`; add a `@secure() param` for each secret value needed (DB password, API key)
 3. Application resource (`Radius.Core/applications@2025-08-01-preview`) — always exactly one
 4. Data / infrastructure resources (databases, caches, message brokers, object storage, AI services)
 5. Secret resources (app API keys, or DB credentials when a schema uses `secretName`)
@@ -137,7 +136,7 @@ Declare resources in this order (do NOT output this as code — it is only for y
 
 Rules:
 - One `Radius.Compute/containers` per container service; one `Radius.Data/*` per backing data store (engine/instance-derived symbolic name).
-- Building from a Dockerfile: add a `Radius.Compute/containerImages` resource, pass the reference via `param image string`, and have the container use `<serviceName>Image.properties.image` with a connection to `<serviceName>Image.id`.
+- Building from a Dockerfile: add a `Radius.Compute/containerImages` resource with `build.source` set to the repo git URL (`git::https://github.com/<org>/<repo>.git//<subdir>?ref=<sha-or-tag>`); the container references the built image via `<serviceName>Image.properties.imageReference` (no separate connection needed).
 - Database credentials follow the type's schema: if it defines `username`/`password`, set them on the resource; if it defines `secretName`, create a `Radius.Security/secrets` and reference it; if it defines neither, the type takes no credentials. Always use a `@secure() param` for the password.
 - Add `Radius.Compute/routes` only for external ingress.
 
@@ -162,9 +161,9 @@ Read [bicep-structure-rules.md](references/bicep-structure-rules.md) for all str
 Before returning the Bicep, verify:
 - [ ] Exactly one `Radius.Core/applications@2025-08-01-preview`, and one `extension radius` (no per-namespace or per-type extensions).
 - [ ] Every `Radius.*` type is on the allow-list and matches its schema; use the API version from the schema.
-- [ ] `param environment string` is declared; `@secure() param password` and `param image string` are declared when needed.
+- [ ] `param environment string` is declared; add a `@secure() param` for each secret (DB password, API key).
 - [ ] `connections` is a top-level object map under `properties` (not inside `containers`, not an array).
-- [ ] Ports use `containerPort`; `build.context` is the Dockerfile's directory (`'.'` if at repo root).
+- [ ] Ports use `containerPort`; a built image uses `build.source` (repo git URL) and the container references `.imageReference`.
 - [ ] Credentials match the type's schema: `username`+`password` on the resource, or `secretName`+secret, or none — whichever the schema defines. Password via `@secure() param`; `database`/`topic`/`queue`/etc. derived from source.
 - [ ] No hardcoded passwords, no readOnly properties set, no comments in the Bicep, and no `bicepconfig.json`.
 

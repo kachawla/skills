@@ -6,7 +6,7 @@
 | Data store symbolic name | `<engine>` + role suffix, camelCase | `mysqlDb`, `postgresDb`, `redisCache` |
 | Secret symbolic name | `<engine>Secret` or `appSecrets`, camelCase | `dbSecret`, `appSecrets` |
 | Resource `name` property | kebab-case, matches app/repo name | `'todo-list-app'`, `'my-database'` |
-| Connection keys | camelCase, short, describes the target | `mysqldb`, `redis`, `storage`, `containerImage` |
+| Connection keys | camelCase, short, describes the target | `mysqldb`, `redis`, `storage` |
 | Application name | kebab-case, matches repository name | `'todo-list-app'` |
 | Container keys (in `containers` map) | camelCase, describes the container role | `todo`, `frontend`, `api` |
 | Port keys (in `ports` map) | camelCase, describes the protocol/use | `web`, `http`, `grpc` |

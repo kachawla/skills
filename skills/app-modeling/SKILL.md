@@ -45,7 +45,7 @@ These rules eliminate ambiguity. Apply them exactly.
 | Container | `<serviceName>Container` — service short name camelCase; single-container apps use `<shortName>Container` (e.g., `todoContainer`) |
 | Container image | `<serviceName>Image` (e.g., `todoImage`) |
 | Data store (database/cache/queue) | `<engine>` + role suffix, camelCase: `mysqlDb`, `postgresDb`, `neo4jDb`, `redisCache`. Multiple of the same engine: prefix with the source store name (e.g., `ordersPostgresDb`) |
-| Data store secret | `<engine>Secret` (e.g., `neo4jSecret`) — only when the type's schema defines `secretName`; app secrets use `appSecrets` |
+| Data store secret | `<engine>Secret` — only when the type's schema defines `secretName`; app secrets use `appSecrets` |
 | Route | `<serviceName>Route` (e.g., `todoRoute`) |
 
 ### Resource `name` properties (string values in Bicep)
@@ -56,7 +56,7 @@ These rules eliminate ambiguity. Apply them exactly.
 | Container | Service name in kebab-case; single-container apps use the app name (e.g., `'todo-list-app'`) |
 | Container image | `'<service-name>-image'` (e.g., `'todo-list-app-image'`) |
 | Data store | Engine short name in kebab-case (`'mysql'`, `'postgres'`, `'neo4j'`, `'redis'`); multiple of the same engine use the source store name |
-| Data store secret | `'<engine>-secret'` (e.g., `'neo4j-secret'`); app secrets `'app-secrets'` |
+| Data store secret | `'<engine>-secret'`; app secrets `'app-secrets'` |
 
 ### Connection keys
 
@@ -130,7 +130,7 @@ Declare resources in this order (do NOT output this as code — it is only for y
 2. Params: `environment`, then `@secure() password` if needed, then `@description(...) image` if needed
 3. Application resource (`Radius.Core/applications@2025-08-01-preview`) — always exactly one
 4. Data / infrastructure resources (databases, caches, message brokers, object storage, AI services)
-5. Secret resources (neo4j credentials, app API keys)
+5. Secret resources (app API keys, or DB credentials when a schema uses `secretName`)
 6. Container image resources (if building from Dockerfile)
 7. Container resources (with connections to images and infra)
 8. Routes (only if external ingress needed)

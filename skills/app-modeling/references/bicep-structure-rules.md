@@ -115,14 +115,14 @@ Rules:
 @secure()
 param password string
 
-resource neo4jSecret 'Radius.Security/secrets@2025-08-01-preview' = {
-  name: 'neo4j-secret'
+resource dbSecret 'Radius.Security/secrets@2025-08-01-preview' = {
+  name: 'db-secret'
   properties: {
     environment: environment
     application: app.id
     data: {
       USERNAME: {
-        value: 'neo4j'
+        value: 'myadmin'
       }
       PASSWORD: {
         value: password
@@ -137,7 +137,7 @@ Rules:
 - NEVER hardcode passwords — use `@secure() param`
 - `data` is an object map, NOT an array
 - Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`, `API_KEY`)
-- `USERNAME` is the database administrator you author (e.g. `neo4j`) — it is not derived from the source
+- `USERNAME` is the database administrator you author (e.g. `myadmin`) — it is not derived from the source
 
 ## Radius.Compute/routes structure
 

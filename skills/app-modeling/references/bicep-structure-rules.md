@@ -94,16 +94,20 @@ resource mysqlDb 'Radius.Data/mySqlDatabases@2025-08-01-preview' = {
     application: app.id
     database: 'todos'      // derived from source (e.g. MYSQL_DATABASE)
     version: '8.0'         // derived from source (e.g. image tag mysql:8.0)
-    secretName: mysqlSecret.name
+    username: 'myadmin'    // administrator you author for the provisioned DB
+    password: password     // from a @secure() param
   }
 }
 ```
 
 Rules:
-- Symbolic name and `secretName` are engine/instance-derived (`mysqlDb`/`mysqlSecret`), NOT fixed — so multiple data stores never collide
-- `database` and `version` are derived from source (compose env, connection string, image tag) — do NOT hardcode
-- `secretName` references a `Radius.Security/secrets` resource for credentials
-- Do NOT set readOnly properties (`host`, `port`) — these are output by the recipe
+- Credentials are schema-specific:
+  - postgres/mysql/sqlserver: `username` + `password` directly on the resource (`password` from a `@secure() param`, marked `x-radius-sensitive` by the schema)
+  - neo4j: `secretName` referencing a `Radius.Security/secrets` (see below)
+  - redis/mongo/kafka/rabbitmq/objectStorage: no credentials — the recipe generates the connection
+- Symbolic name is engine/instance-derived (`mysqlDb`), NOT fixed — so multiple data stores never collide
+- Developer-facing props (`database`, `version`, `size`, `topic`, `queue`, `container`) are derived from source — do NOT hardcode; only set properties the schema defines
+- Do NOT set readOnly properties (`host`, `port`, `connectionString`) — these are recipe outputs
 
 ## Radius.Security/secrets structure
 
@@ -111,14 +115,14 @@ Rules:
 @secure()
 param password string
 
-resource mysqlSecret 'Radius.Security/secrets@2025-08-01-preview' = {
-  name: 'mysql-secret'
+resource neo4jSecret 'Radius.Security/secrets@2025-08-01-preview' = {
+  name: 'neo4j-secret'
   properties: {
     environment: environment
     application: app.id
     data: {
       USERNAME: {
-        value: 'myapp_user'
+        value: 'neo4j'
       }
       PASSWORD: {
         value: password
@@ -129,13 +133,11 @@ resource mysqlSecret 'Radius.Security/secrets@2025-08-01-preview' = {
 ```
 
 Rules:
-- Create one secret per data store that needs credentials; symbolic `<engine>Secret`, name `'<engine>-secret'`
-- ALWAYS create for database credentials — referenced via `secretName` on the database resource
+- Used for neo4j database credentials (referenced via `secretName`) and for app secrets (API keys, tokens) — NOT for postgres/mysql/sqlserver, which take `username`/`password` directly on the resource
 - NEVER hardcode passwords — use `@secure() param`
 - `data` is an object map, NOT an array
-- Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`)
-- `USERNAME` is derived from the source DB config (`MYSQL_USER`, `POSTGRES_USER`, connection string); fallback `<shortName>_user`
-- `USERNAME` is NEVER a superuser/admin account (`root`, `admin`, `sa`, `postgres`, `mysql`) — fall back to `<shortName>_user` if the source uses one
+- Keys in `data` are UPPERCASE (`USERNAME`, `PASSWORD`, `API_KEY`)
+- `USERNAME` is the database administrator you author (e.g. `neo4j`) — it is not derived from the source
 
 ## Radius.Compute/routes structure
 

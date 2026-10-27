@@ -14,8 +14,34 @@ status, GitHub links, and exact Copilot session links when available. Starting
 the monitor runs a check immediately and enables hourly checks by default.
 An explicit one-time check does not create or change a schedule.
 
+### Using the skill
+
+Install globally so the skill is available across your projects:
+
+```sh
+npx skills add kachawla/skills --skill pr-status-monitor -g
+```
+
+Then start it in a GitHub Copilot app session:
+
+```text
+Use pr-status-monitor to monitor my PRs.
+```
+
+This runs a check immediately and schedules hourly checks by default. To choose
+another frequency, add `every 30 minutes` to the prompt or change it later.
+Installing alone does not start monitoring.
+
+Check the [requirements](#requirements) and [configure your account](#configure-your-account)
+before starting: the skill defaults to `kachawla`. See [example prompts](#example-prompts)
+for one-time checks, frequency changes, and stopping.
+
+If the skill is already installed, back up any local customizations before
+replacing it. Start a new Copilot app session if the skill is not yet discovered.
+
 ### Requirements
 
+- Node.js and npm for the `npx` installation command.
 - An authenticated [GitHub CLI](https://cli.github.com/) (`gh`) with access to
   the repositories you want to monitor.
 - A GitHub Copilot app session with agent skill support.
@@ -27,7 +53,7 @@ Without scheduling tools, the skill can run an immediate check but cannot enable
 automatic checks. Session links are never guessed; unmatched sessions are shown
 as **Not found**.
 
-### Install
+### Manual installation (fallback)
 
 Clone this repository and copy the skill into your agent skills directory:
 
@@ -36,9 +62,6 @@ git clone https://github.com/kachawla/skills.git
 mkdir -p ~/.agents/skills/pr-status-monitor
 cp skills/pr-status-monitor/SKILL.md ~/.agents/skills/pr-status-monitor/SKILL.md
 ```
-
-If the skill is already installed, back up any local customizations before
-replacing it. Start a new Copilot app session if the skill is not yet discovered.
 
 ### Configure your account
 

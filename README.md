@@ -28,7 +28,23 @@ Then start it in a GitHub Copilot app session:
 Use pr-status-monitor to monitor my PRs.
 ```
 
-This runs a check immediately and schedules hourly checks by default. To choose
+In hosts that support skill commands in the slash menu, you can also invoke it
+directly:
+
+```text
+/pr-status-monitor
+```
+
+Or include a custom frequency:
+
+```text
+/pr-status-monitor monitor my PRs every 30 minutes
+```
+
+Slash skill commands are not supported by every agent host. Use the
+natural-language prompt above when they are unavailable.
+
+Starting the monitor runs a check immediately and schedules hourly checks by default. To choose
 another frequency, add `every 30 minutes` to the prompt or change it later.
 Installing alone does not start monitoring.
 

@@ -212,9 +212,15 @@ say so briefly, then still show all rows.
 
 Group all authored open PRs by the four classifications. Use one row per PR:
 
-| Status | PR | Session |
-|---|---|---|
-| Short evidence-backed reason; mark new activity in bold | Clickable PR link with repository, number, and short title | Exact clickable session link or Not found |
+| Status | PR | Direct reviewers | Session |
+|---|---|---|---|
+| Short evidence-backed reason; mark new activity in bold | Clickable PR link with repository, number, and short title | Current individual review requests as @login values | Exact clickable session link or Not found |
+
+Populate **Direct reviewers** only from current review requests where
+`requestedReviewer.__typename == "User"`. Exclude teams/groups, historical
+requests, and people who merely reviewed previously. Show **None** only when
+current evidence confirms there are no individual review requests. Label stale
+or unknown reviewer evidence explicitly; do not present it as **None**.
 
 Show a separate **Waiting for your review** table with the same columns,
 distinguishing direct and explicit assignments. List all actionable entries,

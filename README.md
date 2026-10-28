@@ -10,7 +10,10 @@ authored PRs by feedback, review, readiness, and blockers, and reports actionabl
 direct or explicitly assigned reviews.
 
 Every check shows full tables, including unchanged PRs, with evidence-backed
-status, GitHub links, and exact Copilot session links when available. Starting
+status, GitHub links, current direct reviewers, and exact Copilot session links
+when available. The **Direct reviewers** column lists only current individual
+review requests as `@login` values, not teams or past reviewers. Missing reviewer
+evidence is marked stale or unknown, not **None**. Starting
 the monitor runs a check immediately and enables hourly checks by default.
 An explicit one-time check does not create or change a schedule.
 

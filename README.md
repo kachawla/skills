@@ -51,8 +51,9 @@ Starting the monitor runs a check immediately and schedules hourly checks by def
 another frequency, add `every 30 minutes` to the prompt or change it later.
 Installing alone does not start monitoring.
 
-Check the [requirements](#requirements) and [configure your account](#configure-your-account)
-before starting: the skill defaults to `kachawla`. See [example prompts](#example-prompts)
+Check the [requirements](#requirements) and [account setup](#configure-your-account)
+before starting: the skill automatically uses your authenticated `gh` account.
+See [example prompts](#example-prompts)
 for one-time checks, frequency changes, and stopping.
 
 If the skill is already installed, back up any local customizations before
@@ -84,20 +85,37 @@ cp skills/pr-status-monitor/SKILL.md ~/.agents/skills/pr-status-monitor/SKILL.md
 
 ### Configure your account
 
-The default login is `kachawla`. For a different account, edit the installed
-`~/.agents/skills/pr-status-monitor/SKILL.md` and replace every `kachawla`
-reference with your GitHub login. This includes the default account, search
-queries, and direct assignment rule.
+No alias is hardcoded and no skill-file edits are needed. The monitor detects
+your GitHub login automatically through `gh api user --jq .login`. If `gh` is
+already authenticated with the account you want, just use the start prompt.
 
-Authenticate and confirm the active account:
+Otherwise, authenticate and confirm the active account:
 
 ```sh
 gh auth login
 gh api user --jq .login
 ```
 
-The active login must match the configured account. The monitor reports a
-mismatch rather than silently switching accounts.
+For multiple CLI accounts, select the intended account before starting:
+
+```sh
+gh auth switch --user YOUR_LOGIN
+gh api user --jq .login
+```
+
+Replace `YOUR_LOGIN` with your GitHub login. You can also state it explicitly:
+`Use pr-status-monitor to monitor my PRs for GitHub user YOUR_LOGIN.`
+The requested account must match the authenticated CLI account.
+
+The monitor saves the verified login and checks it on every run. If it changes
+or authentication fails, the monitor preserves its data and reports the problem
+rather than silently switching accounts. To monitor another account, explicitly
+request the change after selecting it in `gh`; its history stays separate.
+
+Copilot app sign-in and GitHub CLI authentication can use different accounts.
+The skill verifies `gh` directly; it does not assume the app's account is also
+authenticated in the CLI. The `kachawla/skills` install source is the repository
+address, not the account being monitored.
 
 ### Example prompts
 

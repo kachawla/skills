@@ -10,11 +10,40 @@ Monitor two queues together:
 1. All in-scope open PRs authored by the user.
 2. All actionable PRs waiting for the user's review, using separate direct and explicit assignment lanes.
 
-Default account: `kachawla`. When the user starts this monitor, run immediately
+Detect the account from the authenticated `gh` CLI as described below.
+When the user starts this monitor, run immediately
 and automatically set up recurring checks every 60 minutes unless they select
 another frequency. Honor explicit one-time requests without scheduling.
 Reuse an existing monitor and preserve its cadence unless the user changes it.
 Never silently replace an unrelated automation.
+
+## Account setup
+
+Before collecting, run `gh api user --jq .login` and require a successful,
+nonempty login. For a new monitor, use that login automatically unless the user
+explicitly supplied a different one. No skill-file edits are needed.
+
+Persist the verified login as `githubLogin` in both state manifests and include
+it in the durable automation prompt. Use it consistently for searches,
+authorship, review assignments, and personal-repository exclusions.
+
+For an existing monitor, use its saved login or the configured login in its
+automation prompt and verify it against `gh` on every run. When upgrading older
+state without `githubLogin`, use an explicitly configured login if available;
+otherwise require the authenticated login to match any account recorded in the
+existing state before saving it. If the account cannot be established safely,
+ask the user rather than mixing accounts.
+
+On an explicit-login mismatch, account change, or authentication failure, stop
+collection and schedule setup, preserve existing state and schedules, and report
+the problem. Never run `gh auth switch` or change credentials automatically.
+Tell the user to authenticate or select their intended account with `gh`, then
+retry. A Copilot app sign-in does not establish which account `gh` uses; verify
+the CLI account rather than inferring it from the app or session.
+
+Changing the monitored account requires an explicit user request. Keep the
+previous account's history separate and take a fresh baseline for the new
+verified account instead of merging their state.
 
 ## Safety and scope
 
@@ -69,13 +98,14 @@ being present or trust cached classifications without checking current evidence.
 Discover candidates with fully paginated searches:
 
 ```text
-is:pr is:open author:kachawla
-is:pr is:open -author:kachawla review-requested:kachawla
-is:pr is:open -author:kachawla reviewed-by:kachawla
-is:pr is:open -author:kachawla commenter:kachawla
+is:pr is:open author:<login>
+is:pr is:open -author:<login> review-requested:<login>
+is:pr is:open -author:<login> reviewed-by:<login>
+is:pr is:open -author:<login> commenter:<login>
 ```
 
-Replace the login only when the user explicitly configures a different account.
+Replace every `<login>` placeholder with the verified `githubLogin` before
+executing searches. Never send the placeholder literally.
 The reviewed-by and commenter searches discover candidates, not assignments.
 Partition searches when needed to avoid GitHub's 1,000-result search cap.
 
@@ -150,7 +180,8 @@ An edited bot comment with identical content is not a new event.
 
 ### Direct individual assignment
 
-Qualify only through a current or historical request to GitHub **User** `kachawla`.
+Qualify only through a current or historical request to the GitHub **User**
+whose login matches the verified `githubLogin`.
 Process request/removal events chronologically and honor explicit individual
 removal. Preserve provenance after a submitted review consumes a request.
 An individual re-review request can make a completed review actionable again.
